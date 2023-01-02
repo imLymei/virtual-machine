@@ -5,6 +5,7 @@ class CPU {
 	constructor(memory) {
 		this.memory = memory;
 
+		// ? Occupies first 10 memory spaces for registers [0,1,2,...9]
 		this.registerNames = [
 			'instructionPointer',
 			'accumulator',
@@ -18,14 +19,17 @@ class CPU {
 			'register8',
 		];
 
+		// ? Creates a array buffer for registers
 		this.registers = createMemory(this.registerNames.length * 2);
 
+		// ? Set registers values in the array
 		this.registerMap = this.registerNames.reduce((map, name, i) => {
 			map[name] = i * 2;
 			return map;
 		}, {});
 	}
 
+	// ? Shows every register values in console
 	debug() {
 		console.log();
 		this.registerNames.forEach((name) => {
@@ -34,6 +38,7 @@ class CPU {
 		console.log();
 	}
 
+	// ? Show 8 bytes in the memory after specific address
 	viewMemoryAt(address) {
 		const nextEightBytes = Array.from({ length: 8 }, (_, i) => this.memory.getUint8(address + i)).map(
 			(v) => `0x${v.toString(16).padStart(2, '0')}`
@@ -42,6 +47,7 @@ class CPU {
 		console.log(`0x${address.toString(16).padStart(4, '0')}: ${nextEightBytes.join(' ')}`);
 	}
 
+	// ? Gets registers values in the array
 	getRegister(name) {
 		if (!(name in this.registerMap)) {
 			throw new Error(`getRegister: No such register '${name}'`);
@@ -49,6 +55,7 @@ class CPU {
 		return this.registers.getUint16(this.registerMap[name]);
 	}
 
+	// ? Set registers values in the array
 	setRegister(name, value) {
 		if (!(name in this.registerMap)) {
 			throw new Error(`setRegister: No such register '${name}'`);
@@ -56,6 +63,7 @@ class CPU {
 		return this.registers.setUint16(this.registerMap[name], value);
 	}
 
+	// ? Gets one byte of hexadecimal in the IP address and go to next address
 	fetch() {
 		const nextInstructionAddress = this.getRegister('instructionPointer');
 		const instruction = this.memory.getUint8(nextInstructionAddress);
@@ -63,6 +71,7 @@ class CPU {
 		return instruction;
 	}
 
+	// ? Gets two bytes of hexadecimal in the IP address and go to next address
 	fetch16() {
 		const nextInstructionAddress = this.getRegister('instructionPointer');
 		const instruction = this.memory.getUint16(nextInstructionAddress);
@@ -70,6 +79,7 @@ class CPU {
 		return instruction;
 	}
 
+	// ? Manage all instructions and execute them when called
 	execute(instruction) {
 		switch (instruction) {
 			// ? Move literal value into register
@@ -138,6 +148,7 @@ class CPU {
 		}
 	}
 
+	// ? Gets IP address hexadecimal and try to execute it with execute()
 	step() {
 		const instruction = this.fetch();
 		return this.execute(instruction);
